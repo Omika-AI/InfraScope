@@ -38,10 +38,13 @@ Thumbs.db
 # Logs
 *.log
 
-# Screenshots / local artifacts
+# Screenshots / local artifacts (except favicon assets)
 *.png
 *.jpg
 *.jpeg
+*.ico
+!frontend/public/*.png
+!frontend/public/*.ico
 
 # Build artifacts
 *.tsbuildinfo
