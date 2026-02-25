@@ -1,0 +1,51 @@
+# Environment & secrets
+.env
+.env.local
+.env.production
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+backend/data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Screenshots / local artifacts
+*.png
+*.jpg
+*.jpeg
+
+# Build artifacts
+*.tsbuildinfo
+
+# Project spec (local only)
+claude.md
+CLAUDE.md

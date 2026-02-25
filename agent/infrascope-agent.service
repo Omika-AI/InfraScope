@@ -1,0 +1,13 @@
+[Unit]
+Description=InfraScope Monitoring Agent
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/opt/infrascope/.env
+ExecStart=/usr/bin/python3 /opt/infrascope/infrascope-agent.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
