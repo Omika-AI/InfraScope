@@ -30,10 +30,12 @@ jobs:
             --exclude '*.db' \
             --exclude '.env' \
             --exclude 'data/' \
+            --exclude 'frontend/dist' \
+            --exclude 'venv' \
             -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SERVER_PORT || 22 }}" \
             ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/InfraScope/
 
-      - name: Write .env and deploy
+      - name: Write .env, install deps, and deploy with PM2
         uses: appleboy/ssh-action@v1.0.3
         env:
           HETZNER_CLOUD_API_TOKEN: ${{ secrets.HETZNER_CLOUD_API_TOKEN }}
@@ -46,6 +48,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           envs: HETZNER_CLOUD_API_TOKEN,HETZNER_ROBOT_USER,HETZNER_ROBOT_PASSWORD,AGENT_SECRET
+          command_timeout: 10m
           script: |
             cd ~/InfraScope
             echo "HETZNER_CLOUD_API_TOKEN=${HETZNER_CLOUD_API_TOKEN}" > .env
@@ -56,10 +59,21 @@ jobs:
             echo "COLLECT_INTERVAL=300" >> .env
             echo "ANALYSIS_INTERVAL=3600" >> .env
             echo "RECOMMENDATION_INTERVAL=86400" >> .env
-            mkdir -p data
-            docker compose down
-            docker compose build --no-cache
-            docker compose up -d
-            sleep 10
-            docker compose ps
-            curl -sf http://localhost:8010/api/health || echo "Health check pending - containers may still be starting"
+            mkdir -p backend/data
+            cd ~/InfraScope/backend
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install -r requirements.txt --quiet
+            deactivate
+            cd ~/InfraScope/frontend
+            npm ci
+            npm run build
+            npm install -g serve 2>/dev/null || true
+            cd ~/InfraScope
+            pm2 delete infrascope-backend 2>/dev/null || true
+            pm2 delete infrascope-frontend 2>/dev/null || true
+            pm2 start ecosystem.config.cjs
+            pm2 save
+            sleep 5
+            pm2 list
+            curl -sf http://localhost:8010/api/health || echo "Health check pending - backend may still be starting"
