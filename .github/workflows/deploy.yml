@@ -31,7 +31,7 @@ jobs:
             --exclude '.env' \
             --exclude 'data/' \
             -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SERVER_PORT || 22 }}" \
-            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/InfraScope/
+            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/InfraScope/
 
       - name: Write .env and deploy
         uses: appleboy/ssh-action@v1.0.3
@@ -47,7 +47,7 @@ jobs:
           port: ${{ secrets.SERVER_PORT || 22 }}
           envs: HETZNER_CLOUD_API_TOKEN,HETZNER_ROBOT_USER,HETZNER_ROBOT_PASSWORD,AGENT_SECRET
           script: |
-            cd /InfraScope
+            cd ~/InfraScope
             echo "HETZNER_CLOUD_API_TOKEN=${HETZNER_CLOUD_API_TOKEN}" > .env
             echo "HETZNER_ROBOT_USER=${HETZNER_ROBOT_USER}" >> .env
             echo "HETZNER_ROBOT_PASSWORD=${HETZNER_ROBOT_PASSWORD}" >> .env
