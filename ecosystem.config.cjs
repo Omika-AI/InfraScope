@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "infrascope-backend",
-      script: "./backend/venv/bin/uvicorn",
+      script: "./venv/bin/uvicorn",
       args: "app.main:app --host 0.0.0.0 --port 8010",
       cwd: "./backend",
       interpreter: "none",
