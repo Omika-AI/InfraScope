@@ -1,10 +1,13 @@
+const path = require("path");
+const root = path.resolve(__dirname);
+
 module.exports = {
   apps: [
     {
       name: "infrascope-backend",
-      script: "./venv/bin/uvicorn",
+      script: path.join(root, "backend", "venv", "bin", "uvicorn"),
       args: "app.main:app --host 0.0.0.0 --port 8010",
-      cwd: "./backend",
+      cwd: path.join(root, "backend"),
       interpreter: "none",
       watch: false,
       autorestart: true,
@@ -14,7 +17,7 @@ module.exports = {
       name: "infrascope-frontend",
       script: "npx",
       args: "serve -s dist -l 3004",
-      cwd: "./frontend",
+      cwd: path.join(root, "frontend"),
       interpreter: "none",
       watch: false,
       autorestart: true,
