@@ -37,45 +37,33 @@ jobs:
           target: ${{ env.DEPLOY_PATH }}
           overwrite: true
 
-      - name: Deploy via SSH
+      - name: Write .env and deploy
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          HETZNER_CLOUD_API_TOKEN: ${{ secrets.HETZNER_CLOUD_API_TOKEN }}
+          HETZNER_ROBOT_USER: ${{ secrets.HETZNER_ROBOT_USER }}
+          HETZNER_ROBOT_PASSWORD: ${{ secrets.HETZNER_ROBOT_PASSWORD }}
+          AGENT_SECRET: ${{ secrets.AGENT_SECRET }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
+          envs: HETZNER_CLOUD_API_TOKEN,HETZNER_ROBOT_USER,HETZNER_ROBOT_PASSWORD,AGENT_SECRET
           script: |
-            cd ${{ env.DEPLOY_PATH }}
-
-            # Write .env from secrets
-            cat > .env << 'ENVEOF'
-            HETZNER_CLOUD_API_TOKEN=${{ secrets.HETZNER_CLOUD_API_TOKEN }}
-            HETZNER_ROBOT_USER=${{ secrets.HETZNER_ROBOT_USER }}
-            HETZNER_ROBOT_PASSWORD=${{ secrets.HETZNER_ROBOT_PASSWORD }}
-            AGENT_SECRET=${{ secrets.AGENT_SECRET }}
-            DEMO_MODE=false
-            COLLECT_INTERVAL=300
-            ANALYSIS_INTERVAL=3600
-            RECOMMENDATION_INTERVAL=86400
-            ENVEOF
-
-            # Ensure data directory exists for SQLite persistence
+            cd /InfraScope
+            echo "HETZNER_CLOUD_API_TOKEN=${HETZNER_CLOUD_API_TOKEN}" > .env
+            echo "HETZNER_ROBOT_USER=${HETZNER_ROBOT_USER}" >> .env
+            echo "HETZNER_ROBOT_PASSWORD=${HETZNER_ROBOT_PASSWORD}" >> .env
+            echo "AGENT_SECRET=${AGENT_SECRET}" >> .env
+            echo "DEMO_MODE=false" >> .env
+            echo "COLLECT_INTERVAL=300" >> .env
+            echo "ANALYSIS_INTERVAL=3600" >> .env
+            echo "RECOMMENDATION_INTERVAL=86400" >> .env
             mkdir -p data
-
-            # Build and restart containers
             docker compose down
             docker compose build --no-cache
             docker compose up -d
-
-            # Wait for backend to be healthy
-            echo "Waiting for backend..."
-            for i in $(seq 1 30); do
-              if curl -sf http://localhost:8000/api/health > /dev/null 2>&1; then
-                echo "Backend is healthy!"
-                break
-              fi
-              sleep 2
-            done
-
-            # Show running containers
+            sleep 10
             docker compose ps
+            curl -sf http://localhost:8010/api/health || echo "Health check pending - containers may still be starting"
